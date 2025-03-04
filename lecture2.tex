@@ -1,0 +1,398 @@
+\documentclass{article}
+\input{~/code/math_commands.tex}
+\title{Lecture 2 Gaussian Estimation}
+\author{Xuanxi Zhang}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Lecture Topics}
+\begin{itemize}
+    \item Linear estimation with PCA and probabilistic interpretation.
+    \item Efficient high-dimensional estimation.
+    \item From Gaussian to Gaussian Mixtures: power of non-linear modeling.
+\end{itemize}
+
+\subsection*{Basic Setup}
+We observe data \( X_1, \dots, X_n \in \mathbb{R}^d \) and we view them as i.i.d. samples from an underlying data distribution \( \pi \) (unknown).
+
+\section{Earliest Starting Point for Probabilistic Modeling?}
+Rather than specifying the full distribution, we can first focus on the first moments: given random vector \( X \in \mathbb{R}^d \),
+its \textbf{mean} 
+\[
+m = \mathbb{E}[X] \in \mathbb{R}^d
+\]
+and its \textbf{covariance} 
+\[
+\Sigma = \mathbb{E} \left[ (X - m)(X - m)^T \right] \in \mathbb{R}^{d \times d}
+\]
+where \( \Sigma^T = \Sigma \) (symmetric matrix).
+
+\begin{itemize}
+    \item \( m \) represents the center of mass.
+    \item \( \Sigma \) specifies the spread along each direction of \( \mathbb{R}^d \).In particular, \( \Sigma \) is positive semi-definite (psd).
+    \item Recall that if \( X \) is a random vector of mean \( m \) and covariance \( \Sigma \), then the random variable
+    \[
+    Z = \langle X - m, v \rangle, \quad v \in \mathbb{R}^d
+    \]
+    has mean \( 0 \) and variance \( v^T \Sigma v \).
+\end{itemize}
+
+\subsection*{A Naïve but Useful Decomposition}
+\[
+X = \mathbb{E}[X] + (X - \mathbb{E}[X])
+\]
+where
+\begin{itemize}
+    \item \( \mathbb{E}[X] \) is the deterministic part.
+    \item \( (X - \mathbb{E}[X]) \) is a random component but has zero mean.
+\end{itemize}
+
+\textbf{Next Step: Exploiting Covariance.}
+We now proceed with the next step of this decomposition by exploiting covariance.
+
+\section{Principal Component Analysis (Pearson, 1901)}
+\begin{itemize}
+    \item Given a centered random vector \( X \in \mathbb{R}^d \), can we decompose it as a sum:
+    \[
+    X = \sum_{j=1}^{d} Y_j V_j
+    \]
+    such that \( Y_j \) are decorrelated, i.e.,
+    \[
+    \operatorname{Cov}(Y_i, Y_j) = 0 \quad \text{if } i \neq j?
+    \]
+    where \( V_j \) form an orthogonal basis.
+    
+    \item How do we find such a decomposition?
+    \item Why is it useful?
+\end{itemize}
+
+
+
+\subsection{Largest Direction of Variance}
+\textbf{Question:} What is the largest direction of variance?
+
+Recall: The variance of \( \langle X - \mathbb{E}[X], v \rangle \) is given by $
+    v^T \Sigma v$. The solution \( v_{\max} \) is the eigenvector corresponding to the largest eigenvalue of \( \Sigma \).
+    \[
+    v_{\max} = \underset{\| v \|_2 = 1}{\arg\max}\ \  v^T \Sigma v.
+    \]
+    
+Using a Lagrange multiplier \( \lambda \):
+    \[
+    L(v) = v^T \Sigma v + \lambda (\| v \|^2 - 1)
+    \]
+    and setting \( \nabla L(v) = 0 \) leads to the eigenvalue equation.
+
+Since \( \Sigma \) is positive semidefinite, we have:
+\[
+\Sigma = U \Lambda U^T, \quad \text{with } \lambda_i \geq 0.
+\]
+
+\textbf{Consequence:}
+Denote \( U_j \) as the \( j \)-th column of \( U \). The random variables
+    \[
+    Y_j = \langle X, U_j \rangle
+    \]
+    are decorrelated. Their variances decrease as
+    $
+    \lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_d.
+    $
+\[
+Y = U^T X, \quad \mathbb{E}[Y Y^T] = \mathbb{E}[U^T X X^T U] = U^T U \Lambda U^T U = \Lambda.
+\]
+
+
+
+\subsection{PCA as an Optimal Linear Approximation}
+Another consequence of PCA is that it provides an \textbf{optimal linear approximation} or \textbf{dimensionality reduction} with respect to mean-squared error:
+
+\[
+\min_{P \text{ ortho. projection in dim } k} \mathbb{E} \| X - P P^T X \|^2
+\]
+
+where the term \( P P^T X \) represents the \( k \)-dimensional "features." $P$ is ortho. projection in dim $k$ means $P\in\sR^{d\times k} $ and $P^T P=I_k$.
+
+
+Error decomposition
+\[
+\mathbb{E} \| (I - P P^T) X \|^2 = \mathbb{E} \| X \|^2 - \mathbb{E} \| P^T X \|^2 = \sigma^2 - \operatorname{Tr} (P^T \Sigma P)=\sigma^2-\sum_{i=1}^{d} \lambda_i \| P^T U_i \|^2.
+\]
+
+Optimal solution is  $P=(U_1, \dots, U_k)$.
+
+
+\subsection{Practical Importance}
+PCA is an \textbf{extremely useful visualization and summarization tool}, used in applications such as:
+\begin{itemize}
+    \item Eigenfaces (face recognition),
+    \item Gene expression analysis,
+    \item Dimensionality reduction for large datasets.
+\end{itemize}
+
+
+\section{Probabilistic Interpretation of PCA}
+
+\textbf{Q:}
+\begin{enumerate}
+    \item What is the natural probabilistic model behind PCA?
+    \item What are the estimation properties and sample complexity of PCA?
+\end{enumerate}
+
+\subsection{From PCA to Probabilistic Modeling}
+\begin{itemize}
+    \item PCA is only concerned with the \textbf{first two moments} of the distribution, meaning it considers only:
+    \[
+    d + \frac{d(d+1)}{2} \text{ parameters.}
+    \]
+    \item In contrast, a \textbf{probability model} defined over \( \mathbb{R}^d \) is infinite-dimensional, as it requires \textbf{all} moments to fully describe the distribution.
+    \item \textbf{Analogy: }
+    Consider an analogy where we attempt to fit a function using a finite set of points. Some moments of the distribution are known—how do we interpoleta them? We need more constraints or regularization.
+    \item \textbf{Regularization: }enforce a certain type of \textbf{smoothness}.
+    \item The goal is to find the \textbf{"smoothest"} distribution that agrees with some given moments.
+\end{itemize}
+
+
+
+\subsection{Measuring the "Smoothness" of Probability Distributions}
+
+\textbf{Example 1:} Suppose the input space \( X \) is a discrete set:
+\[
+X = \{x_1, x_2, \dots, x_L\}.
+\]
+The \textbf{uniform distribution} \( P(X = x_i) = \frac{1}{L} \) is arguably the most "regular."
+
+\textbf{Example 2:} Suppose the input space is the continuous interval:
+\[
+X = [0,1].
+\]
+Again, the \textbf{uniform measure} is the most regular.
+
+\textbf{Question:} Is there a variational principle at play?
+
+\textbf{Answer: Entropy Maximization.} We can characterize these "nice" distributions by \textbf{maximizing entropy}.
+
+For a discrete domain:
+\[
+H(\pi) = - \sum_{i=1}^{L} \pi_i \log \pi_i.
+\]
+
+Under appropriate assumptions (more on this in later lectures), for continuous distributions:
+\[
+H(\pi) = - \int \log \frac{d\pi}{dx}(x) \, \pi(dx),
+\]
+where \( \pi \ll \text{Leb} \) (absolutely continuous with respect to the Lebesgue measure).
+
+\textbf{Entropy and Uncertainty} Entropy quantifies \textbf{uncertainty} and the amount of \textbf{information} revealed by observing a random event.
+
+\textbf{Fundamental Quantity} in:
+\begin{itemize}
+    \item Statistical mechanics
+    \item Information theory
+    \item ...
+\end{itemize}
+
+\subsection{Entropy-Based Characterization of Distributions}
+
+We can use entropy to \textbf{characterize distributions} under a given set of constraints. For example, solving:
+
+\[
+\max_{\pi \in \mathcal{P}(X)} H(\pi)
+\]
+
+subject to:
+\[
+\mathbb{E}_{X \sim \pi} [\Phi(X)] = \Phi_0,
+\]
+
+where \( \Phi: X \to \mathbb{R}^K \) represents the \textbf{"sufficient statistics"}.
+
+\textbf{Important Remark}
+This constrained optimization problem is \textbf{not always well-defined}; its feasibility depends on:
+\begin{itemize}
+    \item The domain \( X \).
+    \item The constraints imposed by \( \Phi \).
+\end{itemize}
+
+\textbf{Example 1:} If \( \Phi \equiv 0 \) (no constraint), and
+\[
+X = [0,1],
+\]
+then the solution is:
+\[
+\pi^* = \text{Uniform}([0,1]).
+\]
+
+\textbf{Example 2:} If \( \Phi \equiv 0 \) and 
+\[
+X = \mathbb{R},
+\]
+then there is \textbf{no solution}, as the entropy \textbf{blows up}.
+
+\textbf{Example 3:}
+
+Maximum Entropy with Polynomial Constraints. 
+Consider the case where:
+\[
+\Phi(x) = (x, x x^T)
+\]
+representing all polynomials of degree 1 and 2, with \( X = \mathbb{R} \).
+
+We focus on feasible constraints and rewrite:
+\[
+\Phi(x) = (x, (x - m)^2),
+\]
+with given moments:
+\[
+\Phi_0 = (m, \sigma^2).
+\]
+
+\[
+\max_{p: \mathbb{R} \to \mathbb{R}} - \int p(x) \log p(x) \, dx
+\]
+
+subject to:
+\[
+\begin{cases}
+p(x) \geq 0, \quad \forall x, \\
+\int p(x) \, dx = 1, \\
+\int x p(x) \, dx = m, \\
+\int (x - m)^2 p(x) \, dx = \sigma^2.
+\end{cases}
+\]
+
+\begin{itemize}
+    \item This is a \textbf{constrained optimization problem} in infinite dimensions.
+    \item First, observe that the function:
+    \[
+    [0,1] \ni t \mapsto -t \log t
+    \]
+    is concave.
+    \item Additionally, the constraints are \textbf{linear} in \( p \).
+    \item We can characterize the maximizer by analyzing its \textbf{first-order critical points}.
+\end{itemize}
+
+
+We define the Lagrangian function:
+
+\[
+\mathcal{L}(p) = -\int p(x) \log p(x) \, dx + \lambda \left( \int p(x) dx - 1 \right) +
+\beta \left( \int p(x) x \, dx - m \right) + \gamma \left( \int p(x) (x - m)^2 dx - \sigma^2 \right).
+\]
+
+
+Taking the derivative with respect to \( p(x) \):
+
+\[
+\frac{\delta \mathcal{L}}{\delta p(x)} = -\log p(x) + 1 + \lambda + \beta x + \gamma (x - m)^2 = 0.
+\]
+
+Solving for \( p(x) \)
+
+\[
+\log p(x) = a + bx - c x^2.
+\]
+
+\[
+\Rightarrow p(x) = C e^{-bx - c x^2},
+\]
+
+where \( C, b, c \) are chosen such that the constraints are satisfied.
+
+\textbf{Conclusion: Gaussian Distribution}
+
+\[
+\pi = \mathcal{N}(m, \sigma^2)
+\]
+
+is the \textbf{Gaussian distribution} with mean \( m \) and variance \( \sigma^2 \).
+
+
+
+\begin{itemize}
+    \item The same calculation in \( d \) dimensions shows that the \textbf{maximum entropy distribution} with given mean and covariance is the \textbf{multivariate Gaussian}.
+    \item This is known as the \textbf{"maximally non-committal"} distribution (Jaynes), based on the principle of maximum entropy (MaxEnt).
+    \item \textbf{Re-interpretation of PCA:} When we only model the first two moments, we are implicitly assuming an underlying Gaussian model.
+\end{itemize}
+
+\section{Estimating Principal Components}
+
+\begin{itemize}
+    \item So far, we have studied how to extract principal components from the covariance \( \Sigma \) of a random vector.
+    \item In practice, we observe \( x_1, \dots, x_n \in \mathbb{R}^d \) as i.i.d. samples.
+    \item \textbf{Empirical version?}
+\end{itemize}
+
+
+\subsection*{Empirical Mean}
+\[
+\hat{m} = \frac{1}{n} \sum_{i=1}^{n} X_i.
+\]
+
+Assume, without loss of generality, that \( m = 0 \).
+
+\subsection*{Empirical Covariance}
+\[
+\hat{\Sigma} = \frac{1}{n} \sum_{i=1}^{n} X_i X_i^T.
+\]
+
+\textbf{Fact:} \( \hat{\Sigma} \) is also symmetric and positive semi-definite (psd).
+
+\[
+\mathbb{E}[\hat{\Sigma}] = \mathbb{E}[X X^T] = \Sigma.
+\]
+
+By the \textbf{law of large numbers}, we know that as \( n \to \infty \):
+
+\[
+\hat{\Sigma} \to \Sigma \quad \text{(almost surely)}.
+\]
+
+\section*{Accuracy of Covariance Estimator}
+
+\textbf{Question:} How good is this estimator of the covariance?
+
+For a desired expected relative accuracy:
+
+\[
+\mathbb{E} \|\Sigma - \hat{\Sigma} \|_{\text{op}} \leq \varepsilon,
+\]
+
+how many samples \( n \) are required?
+
+\begin{theorem}[Vershynin]
+    Assume \( X \in \mathbb{R}^d \) is a random vector such that:
+
+\[
+\|X\|_2 \leq K \sqrt{\mathbb{E} \|X\|_2^2}
+\]
+
+for some constant \( K \).
+
+Then, for any \( \varepsilon > 0 \):
+
+\[
+\frac{\mathbb{E} \|\hat{\Sigma} - \Sigma\|}{\|\Sigma\|} \leq \varepsilon
+\]
+
+whenever:
+
+\[
+n \approx \varepsilon^{-2} d \log d.
+\]
+
+\end{theorem}
+
+\textbf{Proof:} Recitation Tomorrow.
+
+
+\paragraph{Consequence: PCA is Not Cursed by Dimension}
+
+\begin{itemize}
+    \item We can estimate eigenvalues with \textbf{small relative error}.
+    \item When eigenvalues are sufficiently spaced, we can also estimate principal components with small relative error, as stated in the \textbf{Davis-Kahan theorem}.
+\end{itemize}
+
+
+\end{document}
