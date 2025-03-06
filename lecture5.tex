@@ -1,0 +1,132 @@
+\documentclass{article}%ctex
+\input{~/code/math_commands.tex}
+
+
+
+
+\title{\huge Lecture 5\\
+\normalsize}
+\author{Xuanxi Zhang}
+\begin{document}
+\maketitle
+
+
+\section{Picture 1 and 2: Graphical Models and the Hammersley--Clifford Theorem}
+
+\subsection*{Dependency Graph Definition}
+\begin{itemize}
+    \item We have a probability distribution \(p(x_1, x_2, \dots, x_n)\) over \(n\) variables in some set \(X^n\).
+    \item We draw a graph \(G\) on the vertex set \(\{1,\dots,n\}\). We place an edge between \(i\) and \(j\) if and only if \(x_i\) is \emph{not} independent of \(x_j\) when conditioned on all remaining variables. 
+    \[
+      x_i \not\perp x_j \;\Big|\;\{x_k : k \neq i,j\} \quad\Longleftrightarrow\quad \text{edge }(i,j)\text{ in }G.
+    \]
+    \item The distribution \(p\) satisfies the (pairwise) Markov property w.r.t.~this graph if whenever \(i\) and \(j\) are \emph{not} connected by an edge, then
+    \[
+      x_i \perp x_j \;\Big|\;\{x_k : k \neq i,j\}.
+    \]
+\end{itemize}
+
+\subsection*{Hammersley--Clifford Theorem (Informal Statement)}
+\begin{itemize}
+    \item Assume \(p(x) > 0\) for all configurations \(x\).
+    \item Then \(p\) satisfies the Markov property w.r.t.\ a graph \(G\) if and only if there exist \emph{potential functions} \(\Psi_C(x_C)\) (one for each \emph{clique} \(C\) of \(G\)) such that
+    \[
+        p(x) \;=\; \prod_{C} \Psi_C(x_C),
+    \]
+    where \(x_C\) is the sub‐configuration \(\{x_i : i \in C\}\).
+\end{itemize}
+
+\section{Picture 3: Example of a Factorization}
+
+\begin{itemize}
+    \item Consider a small graph of five variables \(x_1, x_2, x_3, x_4, x_5\).
+    \item Suppose the edges yield cliques: \(\{1,2,3\}, \{2,3,4\}, \{4,5\}\).
+    \item The factorization of \(p\) then is:
+    \[
+      p(x_1, x_2, x_3, x_4, x_5)
+      \;=\;
+      \Psi_{123}(x_1, x_2, x_3)\;\times\;\Psi_{234}(x_2, x_3, x_4)\;\times\;\Psi_{45}(x_4, x_5).
+    \]
+    \item Example of a conditional independence implied by the absence of edges: 
+    \[
+      x_2 \perp x_5 \;\Big|\; (x_1, x_3, x_4).
+    \]
+\end{itemize}
+
+\section{Picture 4: Proof Sketch of Hammersley--Clifford}
+
+\begin{enumerate}
+    \item \textbf{Factorization \(\implies\) Markov property:} If \(p(x) = \prod_C \Psi_C(x_C)\), one can check directly that if \(i\) and \(j\) are not in the same clique, then \(x_i\) and \(x_j\) become conditionally independent given the rest.
+    \item \textbf{Markov property \(\implies\) Factorization:} 
+    \begin{itemize}
+        \item One shows that 
+        \[
+          \log p(x) \;=\; \sum_{A \subseteq \{1,\dots,n\}} \Psi_A(x_A),
+        \]
+        for some set of functions \(\Psi_A\).
+        \item Then by exploiting the conditional independence structure, one shows \(\Psi_A = 0\) whenever \(A\) is not contained in a clique. So only clique‐based terms remain.
+    \end{itemize}
+\end{enumerate}
+
+\section{Picture 5 and 6: Interacting Particles, Ising Model, and Boltzmann Distribution}
+
+\subsection*{Interacting Particles in Statistical Physics}
+\begin{itemize}
+    \item We have \(n\) particles (or sites), each in a discrete state space \(X\).
+    \item They interact via an \emph{energy function} \(E(x_1,\dots,x_n)\), often written as a sum of pairwise or multi‐wise potentials:
+    \[
+      E(x) \;=\; \sum_{i,j} V(x_i, x_j) \quad(\text{for example}).
+    \]
+\end{itemize}
+
+\subsection*{Ising Model (Example)}
+\begin{itemize}
+    \item Each site \(i\) has a spin \(x_i \in \{+1,-1\}\).
+    \item A common Hamiltonian:
+    \[
+        E(x) \;=\; -\sum_{\langle i,j\rangle} x_i \, x_j,
+    \]
+    summing over neighboring pairs \(\langle i,j\rangle\).
+    \item Ground states (\(T \to 0\)) are all spins up or all spins down.
+\end{itemize}
+
+\subsection*{Boltzmann (Gibbs) Distribution}
+\begin{itemize}
+    \item At temperature \(T\), the probability of configuration \(x\) is:
+    \[
+        p(x) \;=\; \frac{1}{Z} \, e^{-\beta \, E(x)} \quad\text{where}\quad \beta = \frac{1}{T}.
+    \]
+    \item The \emph{partition function} is \(Z = \sum_{x} e^{-\beta E(x)}\).
+    \item As \(T\to 0\), \(p\) concentrates on the configurations that minimize \(E\) (the ground states).
+\end{itemize}
+
+\section{Picture 7 and 8: Typical Configurations and Phase Transitions}
+
+\subsection*{Typical Energies}
+\begin{itemize}
+    \item For large \(n\), the number of configurations of a given energy can be huge, and that entropy factor can outweigh the Boltzmann factor for certain energy levels.
+    \item In the thermodynamic limit \(n \to \infty\), the system’s energy distribution becomes sharply peaked around an \emph{average} (or typical) energy.
+\end{itemize}
+
+\subsection*{Phase Transitions}
+\begin{itemize}
+    \item As \(\beta\) (inverse temperature) crosses a critical value \(\beta_c\), we may observe a discontinuous change in certain order parameters (e.g., magnetization, energy).
+    \item Example: In the Ising model, below a critical temperature \(T_c\), the system “chooses” a magnetized state (mostly + or mostly --). Above \(T_c\), it becomes disordered.
+\end{itemize}
+
+\section{Organized Summary}
+
+\begin{itemize}
+    \item \textbf{Graphical Models and Hammersley--Clifford:} Distributions with conditional independences factorize over cliques of a graph.
+    \item \textbf{Interacting Particles / Ising:} Systems in statistical physics can be seen as Markov random fields with an energy function.
+    \item \textbf{Boltzmann Distribution:} \(p(x)\propto e^{-\beta E(x)}\). As temperature goes to zero, the distribution concentrates on ground states.
+    \item \textbf{Phase Transitions:} In large systems, typical states concentrate in energy “bands.” Sudden changes (discontinuities) in observables at critical temperatures are phase transitions.
+\end{itemize}
+
+
+
+
+
+
+
+\end{document}

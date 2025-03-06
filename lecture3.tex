@@ -22,7 +22,9 @@
 
 \textbf{Alternative route to structure: Statistical Independence.}
 
-\section{Independence}
+\section{Probability Basic}
+
+\subsection{Independence}
 Let $(X, Y) \sim P$ with marginals $P_X$ and $P_Y$.
 
 \begin{itemize}
@@ -61,57 +63,131 @@ Given $n$ i.i.d. observations $x^1, \dots, x^n$, the MLE for $\theta$ is:
 
 This corresponds to \textbf{multivariate models in} $\mathbf{d/2}$ \textbf{dimensions}.
 
-\paragraph{Gain in Sample Complexity}
+
+
+\subsection{Conditional Independence}
+
+\[
+p(X_3 \mid X_1, X_2) = p(X_3 \mid X_1) \quad \text{(or equivalently, } p(X_3 \mid X_1, X_2) \text{)}
+\]
+
+This means that \( X_2 \) and \( X_3 \) are \textbf{conditionally independent} given \( X_1 \).
+
+\paragraph{Conditional Independence Property}
+\textbf{Assume} \( p(X_2 \mid X_1) > 0 \) for all \( X_1, X_2 \). Then:
+\[
+p(X_3 \mid X_1, X_2) = p(X_3 \mid X_1) \iff p(X_2, X_3 \mid X_1) = p(X_2 \mid X_1) \cdot p(X_3 \mid X_1)
+\]
+\textbf{Proof:}
+\[
+\Rightarrow \text{:}\ \  p(X_3, X_2 \mid X_1) = p(X_2 \mid X_1) \cdot p(X_3 \mid X_1, X_2)
+= p(X_2 \mid X_1) \cdot p(X_3 \mid X_1)
+\]
+\[
+\Leftarrow \text{:}\ \  p(X_3 \mid X_1, X_2) = \frac{p(X_2, X_3 \mid X_1)}{p(X_2 \mid X_1)} = p(X_3 \mid X_1).
+\]
+\textbf{Important Fact:} Unconditional independence does not imply conditional independence:
+\[
+X \perp Y \not\Rightarrow X \perp Y \mid Z
+\]
+\[
+X \perp Y \not\Leftarrow X \perp Y \mid Z
+\]
+\textbf{Example 1:}
 \begin{itemize}
-    \item Sample complexity reduces from $O(2^d)$ to $O(2^{d/2})$.
-    \item This breaks the curse of dimensionality by hierarchically splitting variables into independent components.
+    \item \( X \): Alice is working late at night.
+    \item \( Y \): Bob is working late at night.
+    \item \( Z \): There is a conference deadline tomorrow!
+\end{itemize}
+\textbf{Example 2:}
+\begin{itemize}
+    \item \( X \): Parent 1 is left-handed.
+    \item \( Y \): Parent 2 is left-handed.
+    \item \( Z \): The child is left-handed.
 \end{itemize}
 
-
-
-
-
-\section*{Conditional Independence}
-\textbf{Independence is a (very) strong assumption!} 
-
-Can a weaker assumption lead to similar gains?
-
-Recall the Bayes factorization of a joint distribution:
-
+\section{Bayes Factorization and Bayesian Networks}
+For a joint distribution \( p \in \mathcal{P}(\mathcal{X}^d) \), we have:
 \[
 p \in \mathcal{P}(\mathcal{X}^d), \quad p(x_1, \dots, x_d) = \prod_{i=1}^{d} p(x_i \mid x_{1:i-1})
 \]
-
 The right-hand side (RHS) can be represented using a \textbf{directed graph}:
-
 \[
 G = (V, E)
 \]
-
-where the \textbf{vertex set} is \( V = \{X_i\}_{i=1}^{d} \).
-
-The probability factorization can be rewritten as:
-
+where the \textbf{vertex set} is \( V = \{X_i\}_{i=1}^{d} \). And edges are induced by the \textbf{conditioning} in the factorization:
 \[
 p(x_i \mid \{x_j\}_{j \in A(i)}) \Rightarrow A(i) = \{ j \in V \mid j \to i \in E \}
 \]
+properties of the graph: The \textbf{parents} of each node encode the conditioning set. Notice that the \textbf{in-degree} \( D_i \) of each node:
+\[
+D_i = | A(i) |
+\]
+determines the dimension of the associated conditional probability model. Thus, when \( \max_i D(i) = O(d) \), we are \textbf{cursed by dimension}. In this example, we have, in fact, the \textbf{densest possible} graph.
+
+To alleviate the \textbf{Curse of Dimensionality (CoD)}, we need to \textbf{sparsify} the graph by removing unnecessary edges so that the \textbf{degree} is reduced.
+\[
+p(X_i \mid X_{1:i-1}) = p(X_i \mid X_{A(i)})
+\]
+where the conditioning set is smaller, with:
+\[
+|A(i)| < i - 1.
+\]
+
+\subsection{Bayesian Networks}
 
 \begin{itemize}
-    \item The \textbf{parents} of each node encode the conditioning set.
-    \item Notice that the \textbf{in-degree} \( D_i \) of each node:
+    \item First, pick an \textbf{ordering} of variables and consider the model:
           \[
-          D_i = | A(i) |
+          P(X_1, \dots, X_d) = \prod_{i=1}^{d} P(X_i \mid X_{A(i)})
           \]
-          determines the dimension of the associated conditional probability model.
-    \item Thus, when \( \max_i D(i) = O(d) \), we are \textbf{cursed by dimension}.
-    \item In this example, we have, in fact, the \textbf{densest possible} graph.
+          with \( A(i) \subseteq \{1, \dots, i-1\} \).
+    \item We saw how to represent this model using a \textbf{Directed Acyclic Graph (DAG)}:
+          \[
+          G = (V, E),
+          \]
+          where \( (i \to j) \in E \iff i \in A(j) \).
 \end{itemize}
 
+\paragraph{Open Questions}
+\begin{itemize}
+    \item What are the best \textbf{algorithms} for inference and querying the probability model?
+    \item How accurate is the \textbf{translation} between joint probability distributions and DAGs?
+\end{itemize}
 
-\section*{Directed Acyclic Graphs (DAGs)}
-A \textbf{directed, acyclic graph (DAG)} is similar to the complete graph but under Directed Acyclic (DA) constraints.
+\textit{To be discussed later.}
 
-\subsection*{Why Acyclic?}
+\subsection{Example: Naïve Bayes Classifier}
+Consider discrete covariates \( X = (X_1, \dots, X_d) \) and a label \( Y \).
+
+For example:
+\begin{itemize}
+    \item \( Y = \mathbf{1}(\text{email is spam}) \)
+    \item \( X_i = \mathbf{1}(\text{word}_i \in \text{email}) \)
+\end{itemize}
+
+\textbf{Naïve Bayes Model:}
+\[
+p(X_1, \dots, X_d, Y) = p(Y) \cdot \prod_{i=1}^{d} p(X_i \mid Y)
+\]
+
+Spam is detected given \( X \) if:
+
+\[
+P(Y=1) \prod_{i=1}^{d} P(X_i \mid Y=1)
+\]
+
+is greater than:
+
+\[
+P(Y=0)  \prod_{i=1}^{d} P(X_i \mid Y=0).
+\]
+
+
+
+\section{Directed Acyclic Graphs (DAGs)}
+We can see that the graph build from bayes factorization is a DAG.
+
 \textbf{Question:} Why must the graph be acyclic?
 
 \textbf{Answer:}
@@ -132,125 +208,131 @@ A \textbf{directed, acyclic graph (DAG)} is similar to the complete graph but un
           which is impossible.
 \end{itemize}
 
-\subsection*{Alleviating the Curse of Dimensionality}
-To alleviate the \textbf{Curse of Dimensionality (CoD)}, we need to \textbf{sparsify} the graph by removing edges so that the \textbf{degree} is reduced.
 
 
-\section*{Edge Removal and Conditional Independence}
-Removing edges from this graph amounts to stating:
 
+
+
+
+
+\section{Mapping Between Bayesian Probability and DAGs}
+
+\begin{definition}
+    Let \( P \) be a probability distribution on \( \mathcal{X} \) (input space). We define \( I(P) \) as the set of all \textbf{conditional independence} relations satisfied by \( P \), i.e.,
 \[
-p(X_i \mid X_{1:i-1}) = p(X_i \mid X_{A(i)})
+X \perp Y \mid Z, \quad Z \subseteq \mathcal{X}, \quad X, Y \in \mathcal{X}.
 \]
+\end{definition}
+Ideally, we would like the \textbf{graphical representation} to capture \( I(P) \).
+\begin{definition}[factorization]
+    Let \( G \) be a Directed Acyclic Graph (DAG) over variables \( X_1, \dots, X_d \). We say that \( P \) \textbf{factorizes} over \( G \) if:
+    \[
+    P(X_1, \dots, X_d) = \prod_{i=1}^{d} P(X_i \mid X_{A(i)})
+    \]
+    where \( A(i) \) represents the \textbf{parents} of node \( i \) in \( G \).    
+\end{definition}
+\begin{definition}[Independence Map]
+    A DAG \( G \) is an \textbf{Independence Map} for \( P \) if:
 
-where the conditioning set is smaller, with:
+    \[
+    I_l(G) = \left\{ X_i \perp \text{Non-Descendants}(X_i) \mid X_{A(i)} \right\}, \quad i = 1, \dots, d
+    \]
+    
+    is satisfied under \( P \). This means that \( I_l(G) \) contains the \textbf{local independencies}.
+\end{definition}
 
-\[
-|A(i)| < i - 1.
-\]
-
-\subsection*{First Non-Trivial Setting}
-\[
-p(X_3 \mid X_1, X_2) = p(X_3 \mid X_1) \quad \text{(or equivalently, } p(X_3 \mid X_1, X_2) \text{)}
-\]
-
-This means that \( X_2 \) and \( X_3 \) are \textbf{conditionally independent} given \( X_1 \).
-
-\subsection*{Fact: Conditional Independence Property}
-\textbf{Assume} \( p(X_2 \mid X_1) > 0 \) for all \( X_1, X_2 \). Then:
-
-\[
-p(X_3 \mid X_1, X_2) = p(X_3 \mid X_1) \iff p(X_2, X_3 \mid X_1) = p(X_2 \mid X_1) \cdot p(X_3 \mid X_1)
-\]
-
-\textbf{Proof:}
-\[
-\Rightarrow \text{:}\ \  p(X_3, X_2 \mid X_1) = p(X_2 \mid X_1) \cdot p(X_3 \mid X_1, X_2)
-= p(X_2 \mid X_1) \cdot p(X_3 \mid X_1)
-\]
-\[
-\Leftarrow \text{:}\ \  p(X_3 \mid X_1, X_2) = \frac{p(X_2, X_3 \mid X_1)}{p(X_2 \mid X_1)} = p(X_3 \mid X_1).
-\]
-
-
-\section*{Important Fact}
-\textbf{Unconditional independence does not imply conditional independence:}
-
-\[
-X \perp Y \not\Rightarrow X \perp Y \mid Z
-\]
-
-\[
-X \perp Y \not\Leftarrow X \perp Y \mid Z
-\]
-
-\section*{Counter-Examples}
-\textbf{Example 1:}
 \begin{itemize}
-    \item \( X \): Alice is working late at night.
-    \item \( Y \): Bob is working late at night.
-    \item \( Z \): There is a conference deadline tomorrow!
+    \item \textbf{Key Fact}
+    \[
+    P \text{ factorizes according to } G \iff G \text{ is an independence map for } P.
+    \]
+    
+    \textbf{Proof: }
+    This follows from \textbf{F \& K Theorems 3.1 and 3.2} (extending our previous argument).
+    \item In other words, knowing that \( P \) \textbf{factorizes} according to \( G \) provides an explicit list of \textbf{local conditional independencies}, meaning:
+
+    \[
+    I_l(G) \subseteq I(P).
+    \]
+    \item \textbf{Can we also obtain non-local conditional independencies from \( G \)?}
+
 \end{itemize}
 
-\textbf{Example 2:}
-\begin{itemize}
-    \item \( X \): Parent 1 is left-handed.
-    \item \( Y \): Parent 2 is left-handed.
-    \item \( Z \): The child is left-handed.
-\end{itemize}
 
-\section*{Example: Naïve Bayes Classifier}
-Consider discrete covariates \( X = (X_1, \dots, X_d) \) and a label \( Y \).
 
-For example:
-\begin{itemize}
-    \item \( Y = \mathbf{1}(\text{email is spam}) \)
-    \item \( X_i = \mathbf{1}(\text{word}_i \in \text{email}) \)
-\end{itemize}
 
-\textbf{Naïve Bayes Model:}
-\[
-p(X_1, \dots, X_d, Y) = p(Y) \cdot \prod_{i=1}^{d} p(X_i \mid Y)
-\]
-
-\section*{Naïve Bayes and Spam Detection}
-Spam is detected given \( X \) if:
+\section{D-Separation}
+\textbf{Goal:} Given a DAG \( G \) and variables \( X, Y \in \mathcal{X} \), determine whether:
 
 \[
-P(Y=1) \prod_{i=1}^{d} P(X_i \mid Y=1)
+X \perp Y \mid \gZ, \quad \gZ \subseteq \mathcal{X}
 \]
 
-is greater than:
+\textbf{Main Idea:} Determine whether there exists an \textbf{active path} between \( X \) and \( Y \) when \( \gZ \) is observed.
+
+
+\begin{definition}[D-Separation]
+    Let $X, Y$, and $Z$ be disjoint sets of nodes in a DAG. We say $X$ and $Y$ are d-separated by $Z$ if every path from any node in $X$ to any node in $Y$ is blocked by $Z$.
+
+A path is blocked by $Z$ if at least one triple along the path:
+\begin{enumerate}
+    \item Chain or Fork: $A \rightarrow B \rightarrow C$ or $A \leftarrow B \rightarrow C$. The path is blocked if the middle node $B$ is \textbf{in} $Z$.
+    \item Collider: $A \rightarrow B \leftarrow C$, The path is blocked if the middle node $B$ is \textbf{not in} $Z$ and none of its descendants are in $Z$.
+\end{enumerate}
+
+If a path is not blocked, we sometimes say it is "active." If exist a path between $X$ and $Y$ is active, then $X$ and $Y$ are not d-separated.
+
+Given a set \( \gZ \). We define:
+    \[
+    I(G) = \left\{ (X \perp Y \mid \gZ) \mid X, Y \text{ are d-separated with respect to } \gZ \right\}
+    \]
+\end{definition}
+
+
+
+
+\textbf{Claim}
+If a distribution \( P \) factorizes over \( G \), then:
+\[
+I(G) \subseteq I(P).
+\]
+In other words, any \textbf{conditional independence} that we extract from \textbf{d-separation} is satisfied by \( P \).
+
+Proof: To be covered in the next lecture, using undirected graphs.
+
+\textbf{Prop:}
+For any distribution \( P \) that factorizes over \( G \), except for a set of measure zero, we have:
 
 \[
-P(Y=0) \prod_{i=1}^{d} P(X_i \mid Y=0).
+I(G) = I(P).
 \]
 
-\section*{Bayesian Networks}
-\begin{itemize}
-    \item First, pick an \textbf{ordering} of variables and consider the model:
-          \[
-          P(X_1, \dots, X_d) = \prod_{i=1}^{d} P(X_i \mid X_{A(i)})
-          \]
-          with \( A(i) \subseteq \{1, \dots, i-1\} \).
-    \item We saw how to represent this model using a \textbf{Directed Acyclic Graph (DAG)}:
-          \[
-          G = (V, E),
-          \]
-          where \( (i \to j) \in E \iff i \in A(j) \).
-    \item \textbf{Mapping Between Joint Probability Distributions and DAGs.}
-\end{itemize}
+(This accounts for corner cases from degenerate distributions.)
 
-\section*{Open Questions}
-\begin{itemize}
-    \item What are the best \textbf{algorithms} for inference and querying the probability model?
-    \item How accurate is the \textbf{translation} between joint probability distributions and DAGs?
-\end{itemize}
-
-\textit{To be discussed later.}
+Note that this does \textbf{NOT} imply a tight equivalence between \textbf{DAGs} and \textbf{probability models}. Under the concept of \textbf{equivalence in independence relation}, we have:
+\begin{enumerate}
+    \item Non-Uniqueness of DAG Representations: We can have two \textbf{non-isomorphic} DAGs \( G_1 \) and \( G_2 \) (i.e., \( G_1 \neq G_2 \)), such that:
+    \[
+    I(G_1) = I(G_2).
+    \]. For example, consider:
+    \[
+    X \rightarrow Y \rightarrow Z\ \  \text{and} \ \ X \leftarrow Y \rightarrow Z.
+    \]
+    \item Non-Existence of DAG Representations: For some distributions \( P \), ther does not exist a DAG \( G \) such that \( I(G) = I(P) \). For example, consider:
+    \[
+    X, Y \sim \text{Bernoulli}(1/2) \text{ independently}, \quad Z = X \oplus Y.
+    \]
+    The joint distribution \( (X, Y, Z) \) is \textbf{exchangeable} and \textbf{not adapted} to a directed graphical structure.
+\end{enumerate}
 
 
-\section*{Example}
+
+\end{document}
+
+
+
+
+\subsection*{Example}
 Consider the following variables:
 \begin{itemize}
     \item \( G \): Gender
@@ -290,167 +372,3 @@ We have two different notions of \textbf{separation}:
 \end{itemize}
 
 \textbf{Question:} Given a probabilistic model, can we always build a DAG \( G \) such that these two notions agree?
-
-\section*{Independence Sets and Maps}
-
-\subsection*{Definition: Independence Set}
-Let \( P \) be a probability distribution on \( \mathcal{X} \) (input space). We define \( I(P) \) as the set of all \textbf{conditional independence} relations satisfied by \( P \), i.e.,
-
-\[
-X \perp Y \mid Z, \quad Z \subseteq \mathcal{X}, \quad X, Y \in \mathcal{X}.
-\]
-
-Ideally, we would like the \textbf{graphical representation} to capture \( I(P) \).
-
-\subsection*{Definition: Factorization}
-Let \( G \) be a Directed Acyclic Graph (DAG) over variables \( X_1, \dots, X_d \). We say that \( P \) \textbf{factorizes} over \( G \) if:
-
-\[
-P(X_1, \dots, X_d) = \prod_{i=1}^{d} P(X_i \mid X_{A(i)})
-\]
-
-where \( A(i) \) represents the \textbf{parents} of node \( i \) in \( G \).
-
-
-\section*{Definition: Independence Map}
-A DAG \( G \) is an \textbf{Independence Map} for \( P \) if:
-
-\[
-I_P(G) = \left\{ X_i \perp \text{Non-Descendants}(X_i) \mid X_{A(i)} \right\}, \quad i = 1, \dots, d
-\]
-
-is satisfied under \( P \). This means that \( I_P(G) \) contains the \textbf{local independencies}.
-
-\section*{Key Fact}
-\[
-P \text{ factorizes according to } G \iff G \text{ is an independence map for } P.
-\]
-
-\section*{Proof}
-This follows from \textbf{Frydenberg \& Lauritzen Theorems 3.1 and 3.2} (extending our previous argument).
-
-\section*{Interpretation}
-In other words, knowing that \( P \) \textbf{factorizes} according to \( G \) provides an explicit list of \textbf{local conditional independencies}, meaning:
-
-\[
-I_P(G) \subseteq I(P).
-\]
-
-\section*{Open Question}
-\textbf{Can we also obtain non-local conditional independencies from \( G \)?}
-
-
-\section*{D-Separation}
-\textbf{Goal:} Given a DAG \( G \) and variables \( X, Y \in \mathcal{X} \), determine whether:
-
-\[
-X \perp Y \mid \gZ, \quad \gZ \subseteq \mathcal{X}
-\]
-
-\textbf{Main Idea:} Determine whether there exists an \textbf{active path} between \( X \) and \( Y \) when \( \gZ \) is observed.
-
-\section*{Local Rules}
-\begin{enumerate}
-    \item \textbf{Cascade:}
-    
-    \[
-    X_i \to Z \to X_j
-    \]
-
-    \textbf{Path is blocked} if \( Z \in \mathcal{Z} \), i.e., \( Z \) is observed.
-
-    \item \textbf{Common Parent (Deadline Example):}
-    
-    \[
-    X_i \leftarrow Z \rightarrow X_j
-    \]
-
-    \textbf{Path is blocked} if \( Z \in \mathcal{Z} \).
-
-    \item \textbf{V-Structure (Leftie Example):}
-    
-    \[
-    X_i \to Z \leftarrow X_j
-    \]
-
-    \textbf{Path is blocked} if \( Z \notin \mathcal{Z} \).
-\end{enumerate}
-
-\section*{Definition}
-If no active path exists between \( X \) and \( Y \) given \( \gZ \), we say that \( X \) and \( Y \) are \textbf{d-separated}.
-
-
-\section*{D-Separation and Conditional Independence}
-
-Given a set \( \gZ \), we define:
-
-\[
-I(G) = \left\{ (X \perp Y \mid \gZ) \mid X, Y \text{ are d-separated with respect to } \gZ \right\}
-\]
-
-\section*{Claim}
-If a distribution \( P \) factorizes over \( G \), then:
-
-\[
-I(G) \subseteq I(P).
-\]
-
-In other words, any \textbf{conditional independence} that we extract from \textbf{d-separation} is satisfied by \( P \).
-
-\subsection*{Proof}
-\textbf{(To be covered in the next lecture, using undirected graphs.)}
-
-\section*{Open Question}
-What about the case when:
-
-\[
-I(G) = I(P)?
-\]
-
-\subsection*{Answer}
-For any distribution \( P \) that factorizes over \( G \), except for a set of measure zero, we have:
-
-\[
-I(G) = I(P).
-\]
-
-(This accounts for corner cases from degenerate distributions.)
-
-\section*{Important Note}
-This does \textbf{NOT} imply a tight equivalence between \textbf{DAGs} and \textbf{probability models}.
-
-\section*{Non-Uniqueness of DAG Representations}
-We can have two \textbf{non-isomorphic} DAGs \( G_1 \) and \( G_2 \) (i.e., \( G_1 \neq G_2 \)), such that:
-
-\[
-I(G_1) = I(G_2).
-\]
-
-This means that they have the same \textbf{independence structure}, leading to a \textbf{lack of uniqueness}.
-
-\section*{Lack of Existence of a DAG Representation}
-More importantly, some distributions \( P \) \textbf{cannot} be represented by any DAG, meaning:
-
-\[
-I(G) \neq I(P) \quad \forall G.
-\]
-
-For example, consider:
-
-\[
-X, Y \sim \text{Bernoulli}(1/2) \text{ independently}, \quad Z = X \oplus Y.
-\]
-
-The joint distribution \( (X, Y, Z) \) is \textbf{exchangeable} and \textbf{not adapted} to a directed graphical structure.
-
-\section*{Summary}
-DAGs and Bayesian Networks provide a \textbf{powerful language} to express \textbf{conditional independencies}.
-
-However, this \textbf{language is imperfect} due to:
-\begin{itemize}
-    \item \textbf{Lack of existence}: Some distributions do not have a DAG representation.
-    \item \textbf{Lack of uniqueness}: Different DAGs can encode the same independence structure.
-\end{itemize}
-
-
-\end{document}

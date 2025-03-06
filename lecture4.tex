@@ -131,7 +131,7 @@ We still want a \textbf{local factorization} of the joint density (in order to b
 \[
 P(X_1, \dots, X_n) = \prod_{C \in \mathcal{C}} \psi_C (X_C),
 \]
-where $\gC \subseteq 2^V$ to be determined. 
+where $\gC \subseteq \gP(\{1,2,\cdots,n\})$ to be determined. 
 \(
 X_C = \{X_i \mid i \in C\}
 \) and $\psi_C$ is a potential function locally on $X_C$ (usually not a probability distribution).
@@ -166,24 +166,24 @@ F(X_i) \cdot G(X_j)
 
 \item $\Rightarrow$ \( (i,j) \) \textbf{cannot belong to any} \( C \)
 
-\item $\Rightarrow$ $C$ on;y contains nodes $X_i$ that are connected with each other.
+\item $\Rightarrow$ $C$ only contains nodes $X_i$ that are connected with each other.
 
-\item $\Rightarrow$ $\gC$ only contains \textbf{cliques} of \( G \).
+\item $\Rightarrow$ $\gC$ only contains \textbf{cliques} (fully connected subgraph) of \( G \).
 
     \item Since a clique \( C \) contains all smaller cliques \( C' \subset C \), we can reduce ourselves to the set \( \mathcal{G} \) of \textbf{maximal cliques}.
     \item \( C \) is a \textbf{maximal clique} if \( C \cup \{ x_i \} \) is not a clique for all \( i \notin C \).
 \end{itemize}
 
-\subsection*{Summary}
+\subsection{Summary}
 \[
-\mathcal{G} = \{ C \mid C \text{ is a maximal clique of } G \}
+\mathcal{C} = \{ C \mid C \text{ is a maximal clique of } G \}
 \]
 \[
 \psi_C(X_C) \text{ is an arbitrary non-negative potential.}
 \]
 Probability distribution is parameterized as 
 \[
-p(x) = \frac{1}{Z} \prod_{C \in \mathcal{G}} \psi_C (X_C),
+p(x) = \frac{1}{Z} \prod_{C \in \mathcal{C}} \psi_C (X_C),
 \]
 where the partition function is:
 \[
@@ -192,7 +192,7 @@ Z = \int \left( \prod_C \psi_C (X_C) \right) dx.
 
 We say that \( P \) is a \textbf{Gibbs distribution} that factorizes over \( G \).
 
-\section*{Question: What is the meaning of the local potentials \( \psi_C \)?}
+\subsection{Meaning of the local potentials}
 
 \textbf{Example:}
 
@@ -222,7 +222,7 @@ P(X, Y, Z) = P(X \mid Y) P(Y) P(Z \mid Y)
 Rewriting,
 
 \[
-P(X, Y, Z) = P(X) P(Y)^\alpha P(Y)^{1-\alpha} P(Z \mid Y)
+P(X, Y, Z) = P(X\mid Y) P(Y)^\alpha P(Y)^{1-\alpha} P(Z \mid Y)
 \]
 
 which gives us:
@@ -239,30 +239,17 @@ where \( \psi_1, \psi_2 \) are \textbf{not} probability distributions.
 P(X, Y, Z) \neq P(X, Y) P(Y, Z).
 \]
 
-\section*{Question: How to list all conditional independencies involving a given variable \( X \)?}
+\section{From Graph to Markov Property}
+We start form this question: given a graph \( G \), can we list all conditional independencies invovling a given point $X$?
 
-\textbf{Definition (Markov Blanket):} 
-
-A set \( A \subseteq \mathcal{X} \) is a \textbf{Markov Blanket} for \( X \) if:
-
-- \( X \not\in A \), and 
-- \( A \) is a minimal set such that:
-
+\begin{definition}[Markov Blanket]
+A set \( A \subseteq \mathcal{X} \) is a \textbf{Markov Blanket} for \( X \) if \( X \not\in A \), and \( A \) is a minimal set such that:
 \[
-X \perp X \setminus A \cup \{X\} \mid A.
+X \perp \gX \setminus A \cup \{X\} \mid A.
 \]
+\end{definition}
 
-
-\section*{Definition}
-
-What is the \textbf{Markov Blanket} in \textbf{undirected graphical models}?
-
-\begin{itemize}
-    \item It is precisely the set of neighbors in \( G \)!
-\end{itemize}
-
-\section*{Example}
-
+The \textbf{Markov Blanket} in \textbf{undirected graphical models} is precisely the set of neighbors in \( G \)! Consider following example:
 \begin{center}
     \begin{tikzpicture}
         \node (A) at (0,1) [circle,draw] {A};
@@ -273,117 +260,49 @@ What is the \textbf{Markov Blanket} in \textbf{undirected graphical models}?
         \draw (B) -- (C);
     \end{tikzpicture}
 \end{center}
-
-\textbf{Gibbs Model:}
-
+with Gibbs Model
 \[
 P(a,b,c) = \frac{1}{Z} \psi_1(a,b) \cdot \psi_2(b,c)
 \]
+Lets verifying the markov Pproperty \( A \perp C \mid B \).
+\begin{align*}
+P(a,c \mid b) &= \frac{P(a,b,c)}{P(b)} = \frac{\psi_1(a,b) \cdot \psi_2(b,c)}{Z \cdot P(b)}= \frac{\psi_1(a,b) \cdot \psi_2(b,c)}{\int \psi_1(a,b) \cdot \psi_2(b,c) \, da \, dc}= \frac{\psi_1(a,b)}{\int \psi_1(a,b) \, da} \cdot \frac{\psi_2(b,c)}{\int \psi_2(b,c) \, dc}
+\end{align*}
 
-\section*{Verifying the Markov Property}
-
-If \( A \perp C \mid B \), then:
-
-\[
-P(a,c \mid b) = \frac{\psi_1(a,b) \cdot \psi_2(b,c)}{Z \cdot P(b)}
-\]
-
-Expanding:
-
-\[
-P(a,c \mid b) = \frac{\psi_1(a,b) \psi_2(b,c)}{\int \psi_1(a,b) \psi_2(b,c) \, da \, dc}
-\]
-
-Factorizing:
-
-\[
-P(a,c \mid b) = \frac{\psi_1(a,b)}{\int \psi_1(a,b) \, da} \cdot \frac{\psi_2(b,c)}{\int \psi_2(b,c) \, dc}
-\]
-
-\section*{Conditional Independence}
-
-\[
-P(a \mid b) = \frac{P(a,b)}{P(b)}
-\]
-
-\[
-= \frac{\psi_1(a,b)}{\int \psi_1(a,b) \, da} \cdot \frac{\int \psi_2(b,c) \, dc}{\int \psi_1(a,b) \, da \int \psi_2(b,c) \, dc}
-\]
-
-\[
-= \frac{\psi_1(a,b)}{\int \psi_1(a,b) \, da}
-\]
-
-Thus, \( A \perp C \mid B \) holds.
-
-
-\section*{A General Property}
 
 This is an instance of a more general property:
 
-\textbf{Fact:} \([ K \& F, \text{Theorem 4.1} ]\) If \( P \) is a \textbf{Gibbs distribution} factorizing over \( G \), then \( G \) is an \(\mathcal{I}\)-map for \( P \), i.e.,
-
+\begin{theorem}[ K \& F, \text{Theorem 4.1} ]
+    If \( P \) is a \textbf{Gibbs distribution} factorizing over \( G \), then \( G \) is an \(\mathcal{I}\)-map for \( P \), i.e.,
 \[
 \mathcal{I}(G) \subseteq \mathcal{I}(P)
 \]
+\end{theorem}
 
-\section*{Proof Sketch}
-
-If \( Y \) separates \( X \) and \( Z \), then there are no direct edges between \( X \) and \( Z \).
-
-\begin{itemize}
-    \item Any clique is either in \( X \cup Y \) or in \( Z \cup Y \).
-\end{itemize}
-
+\textbf{Proof Sketch}
+If \( Y \) separates \( X \) and \( Z \), then there are no direct edges between \( X \) and \( Z \). Any clique is either in \( X \cup Y \) or in \( Z \cup Y \).
 Thus,
-
 \[
 P(X_1, \dots, X_n) = \frac{1}{Z} \psi_1(X,Y) \cdot \psi_2(Z,Y)
 \]
 
 which reduces to the \textbf{previous example}. \(\square\)
 
-\section*{Gibbs Factorization and Markov Property}
+\section{From Markov Property to Graph}
+In last section, we showed that given a graph \( G \)(and corresponding gibbs distribution), we can deduce the Markov property. Can we deduce that \( P \) is Gibbs w.r.t \( G \) just from the Markov property?
 
-In other words, we have:
-
-\[
-\text{Gibbs Factorization} \quad \Rightarrow \quad \text{Markov Property}
-\]
-
-\[
-\text{Gibbs Factorization} \quad \Leftarrow \quad \text{Markov Property} \quad ?
-\]
-
-\section*{Question}
-
-Can we deduce that \( P \) is Gibbs with \( G \) just from the Markov property?
-
-
-\section*{Theorem [Hammersley-Clifford]}
-
+\begin{theorem}[Hammersley-Clifford]
 Let \( P > 0 \) over \( X \), and let \( G \) be an \textbf{undirected graph} over \( X \). If \( G \) is an \(\mathcal{I}\)-map over \( P \), then \( P \) is a \textbf{Gibbs distribution} w.r.t. \( G \).
-
-\section*{Proof Recitation}
+\end{theorem}
+\textbf{Proof: }Recitation
 
 \textbf{Interpretation:} The Hammersley-Clifford theorem gives us an \textbf{equivalence} between two sources of structure:
-
 \begin{itemize}
     \item \textbf{Factorization} (expressed at the level of the density)
     \[
     P(X_1, \dots, X_n) = \frac{1}{Z} \prod_C \psi_C (X_C)
     \]
-    \[
-    P(x) = e^{-F}
-    \]
-    (Gibbs distribution)
-\end{itemize}
-
-\[
-\Longleftrightarrow
-\]
-
-\begin{itemize}
+    (Gibbs Distribution)
     \item \textbf{Independence} (expressed at the level of random variables)
     \[
     X_i \perp X_j \mid X_{k}, k \notin \{i,j\}
@@ -391,45 +310,9 @@ Let \( P > 0 \) over \( X \), and let \( G \) be an \textbf{undirected graph} ov
     (Markov Assumption)
 \end{itemize}
 
-\section*{Remark}
-
-\textbf{Positivity assumption is necessary!} 
-
-(We'll see a counter-example in HW 2.)
+Remark: Positivity assumption is necessary! (We'll see a counter-example in HW 2.)
 
 
-\section*{Definition of Factor Graphs}
-
-\begin{itemize}
-    \item A \textbf{bipartite graph} where nodes are both variables and factors.
-    \item We draw an edge \( X_i \to C_j \) if variable \( X_i \) appears in factor \( C_j \).
-    \item \textbf{Ambiguity between cliques and maximal cliques disappears.}
-\end{itemize}
-
-\section*{Factor Graph Representation}
-
-\begin{center}
-    \begin{tikzpicture}
-        % Variables
-        \node (X1) at (0,3) [circle,draw] {\(X_1\)};
-        \node (Xn) at (0,1) [circle,draw] {\(X_n\)};
-        
-        % Factors
-        \node (C1) at (3,3.5) [rectangle,draw] {\(C_1\)};
-        \node (Cp) at (3,0.5) [rectangle,draw] {\(C_p\)};
-
-        % Edges
-        \draw (X1) -- (C1);
-        \draw (Xn) -- (Cp);
-
-        % Labels
-        \node at (0,-0.5) {Variables};
-        \node at (3,-0.5) {Factors};
-    \end{tikzpicture}
-\end{center}
-
-\section*{Question}
-\textbf{Translation between directed and undirected models?}
 
 
 

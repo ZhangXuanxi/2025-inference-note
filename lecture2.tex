@@ -17,8 +17,8 @@
 \subsection*{Basic Setup}
 We observe data \( X_1, \dots, X_n \in \mathbb{R}^d \) and we view them as i.i.d. samples from an underlying data distribution \( \pi \) (unknown).
 
-\section{Earliest Starting Point for Probabilistic Modeling?}
-Rather than specifying the full distribution, we can first focus on the first moments: given random vector \( X \in \mathbb{R}^d \),
+\section{First Moment Estimation}
+Given random vector \( X \in \mathbb{R}^d \),
 its \textbf{mean} 
 \[
 m = \mathbb{E}[X] \in \mathbb{R}^d
@@ -39,7 +39,7 @@ where \( \Sigma^T = \Sigma \) (symmetric matrix).
     has mean \( 0 \) and variance \( v^T \Sigma v \).
 \end{itemize}
 
-\subsection*{A Naïve but Useful Decomposition}
+We can decompose \( X \) as:
 \[
 X = \mathbb{E}[X] + (X - \mathbb{E}[X])
 \]
@@ -49,78 +49,34 @@ where
     \item \( (X - \mathbb{E}[X]) \) is a random component but has zero mean.
 \end{itemize}
 
-\textbf{Next Step: Exploiting Covariance.}
-We now proceed with the next step of this decomposition by exploiting covariance.
+\section{Dimensionality Reduction and Principal Component Analysis}
+Given a random variable in high dimension, we want reduce the number of variables, while preserving as much information as possible. It is quite intuitive to connect with normal dimensionality reduction techniques like low rank approximation or feature selection.
 
-\section{Principal Component Analysis (Pearson, 1901)}
-\begin{itemize}
-    \item Given a centered random vector \( X \in \mathbb{R}^d \), can we decompose it as a sum:
-    \[
-    X = \sum_{j=1}^{d} Y_j V_j
-    \]
-    such that \( Y_j \) are decorrelated, i.e.,
-    \[
-    \operatorname{Cov}(Y_i, Y_j) = 0 \quad \text{if } i \neq j?
-    \]
-    where \( V_j \) form an orthogonal basis.
-    
-    \item How do we find such a decomposition?
-    \item Why is it useful?
-\end{itemize}
-
-
-
-\subsection{Largest Direction of Variance}
-\textbf{Question:} What is the largest direction of variance?
-
-Recall: The variance of \( \langle X - \mathbb{E}[X], v \rangle \) is given by $
-    v^T \Sigma v$. The solution \( v_{\max} \) is the eigenvector corresponding to the largest eigenvalue of \( \Sigma \).
-    \[
-    v_{\max} = \underset{\| v \|_2 = 1}{\arg\max}\ \  v^T \Sigma v.
-    \]
-    
-Using a Lagrange multiplier \( \lambda \):
-    \[
-    L(v) = v^T \Sigma v + \lambda (\| v \|^2 - 1)
-    \]
-    and setting \( \nabla L(v) = 0 \) leads to the eigenvalue equation.
-
-Since \( \Sigma \) is positive semidefinite, we have:
+So consider a centered random vector \( X \in \mathbb{R}^d \) with covariance \( \Sigma =U \Lambda U^T \). We could change basis to the eigenvectors of \( \Sigma \), which is the columns of \( U \). Then we have
 \[
-\Sigma = U \Lambda U^T, \quad \text{with } \lambda_i \geq 0.
-\]
-
-\textbf{Consequence:}
-Denote \( U_j \) as the \( j \)-th column of \( U \). The random variables
-    \[
-    Y_j = \langle X, U_j \rangle
-    \]
-    are decorrelated. Their variances decrease as
-    $
-    \lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_d.
-    $
+X=\sum_{j=1}^{d} \langle X, U_j \rangle U_j
+\] 
+Define $Y_j=\langle X, U_j \rangle$ as new random variables. Then we have
 \[
-Y = U^T X, \quad \mathbb{E}[Y Y^T] = \mathbb{E}[U^T X X^T U] = U^T U \Lambda U^T U = \Lambda.
+\mathbb{E}[Y_i Y_j]=\E(U_i^T X X^T U_j)=U_i^T \Sigma U_j=\lambda_j \delta_{ij}
 \]
+which means \( Y_i \) are decorrelated and the variance of \( Y_i \) is \( \lambda_i \).
 
 
 
 \subsection{PCA as an Optimal Linear Approximation}
-Another consequence of PCA is that it provides an \textbf{optimal linear approximation} or \textbf{dimensionality reduction} with respect to mean-squared error:
-
+Go further to the ides of "Dimensionality Reduction", we can state it in the mathematic form. Given random variable $X$, we want to solve following optimization problem:
 \[
-\min_{P \text{ ortho. projection in dim } k} \mathbb{E} \| X - P P^T X \|^2
+\min_{P\in \sR^{d\times k},\ PP^T=I_k } \mathbb{E} \| (I- P P^T) X \|^2
 \]
+The mathematical definition for a projector is : if a tranform $Q\in \sR^{d\times d}$ satisfies $Q^2=Q$, then we call it a projector. Here given $P\in \sR^{d\times k}$ has orthogonal columns, then $PP^T$ and $I-PP^T$ are both projectors. The former one project $X$ to the subspace spanned by the columns of $P$, while the latter one project $X$ to the orthogonal complement of the subspace. Above optimization problem wants to minimizes the projection residual.
 
-where the term \( P P^T X \) represents the \( k \)-dimensional "features." $P$ is ortho. projection in dim $k$ means $P\in\sR^{d\times k} $ and $P^T P=I_k$.
 
-
-Error decomposition
+Some calculation
 \[
-\mathbb{E} \| (I - P P^T) X \|^2 = \mathbb{E} \| X \|^2 - \mathbb{E} \| P^T X \|^2 = \sigma^2 - \operatorname{Tr} (P^T \Sigma P)=\sigma^2-\sum_{i=1}^{d} \lambda_i \| P^T U_i \|^2.
+\mathbb{E} \| (I - P P^T) X \|^2 = \mathbb{E} \| X \|^2 - \mathbb{E} \| P^T X \|^2 = \operatorname{Tr}(\Sigma)  - \operatorname{Tr} (P^T \Sigma P)
 \]
-
-Optimal solution is  $P=(U_1, \dots, U_k)$.
+This is totally the same as matrix low rank approximation. Optimal solution is  $P=(U_1, \dots, U_k)$.
 
 
 \subsection{Practical Importance}
@@ -141,19 +97,12 @@ PCA is an \textbf{extremely useful visualization and summarization tool}, used i
 \end{enumerate}
 
 \subsection{From PCA to Probabilistic Modeling}
-\begin{itemize}
-    \item PCA is only concerned with the \textbf{first two moments} of the distribution, meaning it considers only:
+PCA is only concerned with the \textbf{first two moments} of the distribution, meaning it considers only:
     \[
     d + \frac{d(d+1)}{2} \text{ parameters.}
     \]
-    \item In contrast, a \textbf{probability model} defined over \( \mathbb{R}^d \) is infinite-dimensional, as it requires \textbf{all} moments to fully describe the distribution.
-    \item \textbf{Analogy: }
-    Consider an analogy where we attempt to fit a function using a finite set of points. Some moments of the distribution are known—how do we interpoleta them? We need more constraints or regularization.
-    \item \textbf{Regularization: }enforce a certain type of \textbf{smoothness}.
-    \item The goal is to find the \textbf{"smoothest"} distribution that agrees with some given moments.
-\end{itemize}
-
-
+But there are infinitely many distributions with the first two moments
+\textbf{Analogy: } In numerical interpolation, we also have finite point constraints, but have to choose from infinite number of functions. We enforce a certain type of \textbf{smoothness} and choose the "best" one from all possible functions. 
 
 \subsection{Measuring the "Smoothness" of Probability Distributions}
 
@@ -169,29 +118,20 @@ X = [0,1].
 \]
 Again, the \textbf{uniform measure} is the most regular.
 
-\textbf{Question:} Is there a variational principle at play?
 
-\textbf{Answer: Entropy Maximization.} We can characterize these "nice" distributions by \textbf{maximizing entropy}.
-
+\textbf{Entropy Maximization.} We can characterize these "nice" distributions by \textbf{maximizing entropy}.
 For a discrete domain:
 \[
 H(\pi) = - \sum_{i=1}^{L} \pi_i \log \pi_i.
 \]
-
 Under appropriate assumptions (more on this in later lectures), for continuous distributions:
 \[
 H(\pi) = - \int \log \frac{d\pi}{dx}(x) \, \pi(dx),
 \]
 where \( \pi \ll \text{Leb} \) (absolutely continuous with respect to the Lebesgue measure).
 
-\textbf{Entropy and Uncertainty} Entropy quantifies \textbf{uncertainty} and the amount of \textbf{information} revealed by observing a random event.
+Entropy quantifies \textbf{uncertainty} and the amount of \textbf{information} revealed by observing a random event. It is a Fundamental quantity in Statistical mechanics, Information theory and so on.
 
-\textbf{Fundamental Quantity} in:
-\begin{itemize}
-    \item Statistical mechanics
-    \item Information theory
-    \item ...
-\end{itemize}
 
 \subsection{Entropy-Based Characterization of Distributions}
 
@@ -208,7 +148,7 @@ subject to:
 
 where \( \Phi: X \to \mathbb{R}^K \) represents the \textbf{"sufficient statistics"}.
 
-\textbf{Important Remark}
+\textbf{Important Remark:}
 This constrained optimization problem is \textbf{not always well-defined}; its feasibility depends on:
 \begin{itemize}
     \item The domain \( X \).
@@ -316,72 +256,45 @@ is the \textbf{Gaussian distribution} with mean \( m \) and variance \( \sigma^2
     \item \textbf{Re-interpretation of PCA:} When we only model the first two moments, we are implicitly assuming an underlying Gaussian model.
 \end{itemize}
 
-\section{Estimating Principal Components}
-
-\begin{itemize}
-    \item So far, we have studied how to extract principal components from the covariance \( \Sigma \) of a random vector.
-    \item In practice, we observe \( x_1, \dots, x_n \in \mathbb{R}^d \) as i.i.d. samples.
-    \item \textbf{Empirical version?}
-\end{itemize}
-
-
-\subsection*{Empirical Mean}
+\section{Statistical Aspect}
+Now we consider the \textbf{empirical version} of the problem, where we observe \( X_1, \dots, X_n \) rather than  an abstract random variable \( X \) which has mean $m$ and variance $\Sigma$. We have empirical mean
 \[
 \hat{m} = \frac{1}{n} \sum_{i=1}^{n} X_i.
 \]
-
-Assume, without loss of generality, that \( m = 0 \).
-
-\subsection*{Empirical Covariance}
+Assume, without loss of generality, that \(\E(\hat{m})= m = 0 \). And empirical covariance:
 \[
 \hat{\Sigma} = \frac{1}{n} \sum_{i=1}^{n} X_i X_i^T.
 \]
+\textbf{Fact:} \( \hat{\Sigma} \) is also symmetric and positive semi-definite (psd), and $\mathbb{E}[\hat{\Sigma}]  = \Sigma.$
 
-\textbf{Fact:} \( \hat{\Sigma} \) is also symmetric and positive semi-definite (psd).
 
-\[
-\mathbb{E}[\hat{\Sigma}] = \mathbb{E}[X X^T] = \Sigma.
-\]
 
 By the \textbf{law of large numbers}, we know that as \( n \to \infty \):
 
 \[
-\hat{\Sigma} \to \Sigma \quad \text{(almost surely)}.
+\hat{m}\to m,\ \ \hat{\Sigma} \to \Sigma \quad \text{(almost surely)}.
 \]
 
-\section*{Accuracy of Covariance Estimator}
-
-\textbf{Question:} How good is this estimator of the covariance?
-
-For a desired expected relative accuracy:
-
+\subsection{Accuracy of Covariance Estimator}
+\textbf{Question:} How good is this estimator of the covariance? In other words, for a desired expected relative accuracy
 \[
 \mathbb{E} \|\Sigma - \hat{\Sigma} \|_{\text{op}} \leq \varepsilon,
 \]
-
 how many samples \( n \) are required?
 
 \begin{theorem}[Vershynin]
-    Assume \( X \in \mathbb{R}^d \) is a random vector such that:
-
+Assume \( X \in \mathbb{R}^d \) is a random vector such that:
 \[
 \|X\|_2 \leq K \sqrt{\mathbb{E} \|X\|_2^2}
 \]
-
-for some constant \( K \).
-
-Then, for any \( \varepsilon > 0 \):
-
+for some constant \( K \). Then, for any \( \varepsilon > 0 \):
 \[
 \frac{\mathbb{E} \|\hat{\Sigma} - \Sigma\|}{\|\Sigma\|} \leq \varepsilon
 \]
-
 whenever:
-
 \[
 n \approx \varepsilon^{-2} d \log d.
 \]
-
 \end{theorem}
 
 \textbf{Proof:} Recitation Tomorrow.
